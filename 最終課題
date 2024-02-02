@@ -1,0 +1,105 @@
+include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define MAX_WORD_LENGTH 20
+#define MAX_TRIES 6
+
+char* wordList[] = { "apple", "banana", "orange", "grape", "melon", "kiwi" };
+
+char* selectRandomWord() {
+    int index = rand() % 6;
+    return wordList[index];
+}
+
+void displayHangman(int incorrect) {
+    printf("  +---+\n");
+    printf("  |   |\n");
+
+    if (incorrect >= 1)
+        printf("  O   |\n");
+    if (incorrect == 2)
+        printf("  |   |\n");
+    else if (incorrect == 3)
+        printf(" /|   |\n");
+    else if (incorrect >= 4)
+        printf(" /|\\  |\n");
+
+    if (incorrect == 5)
+        printf(" /    |\n");
+    else if (incorrect >= 6)
+        printf(" / \\  |\n");
+
+    printf("      |\n");
+    printf("=========\n");
+}
+
+int isGuessed(char letter, char* guessedLetters) {
+    for (int i = 0; i < strlen(guessedLetters); i++) {
+        if (guessedLetters[i] == letter) {
+            return 1; // 既に予想した文字
+        }
+    }
+    return 0; // 未予想の文字
+}
+
+void displayWordState(char* word, char* guessedLetters) {
+    for (int i = 0; i < strlen(word); i++) {
+        if (isGuessed(word[i], guessedLetters)) {
+            printf("%c ", word[i]);
+        }
+        else {
+            printf("_ ");
+        }
+    }
+    printf("\n");
+}
+
+int main() {
+    srand((unsigned int)time(NULL));
+    char* selectedWord = selectRandomWord();
+    char guessedLetters[MAX_WORD_LENGTH] = { '\0' }; // 初期化
+
+    int incorrect = 0;
+
+    printf("Welcome to Hangman!\n");
+
+    while (incorrect < MAX_TRIES) {
+        printf("\n");
+        displayHangman(incorrect);
+        displayWordState(selectedWord, guessedLetters);
+
+        printf("\n文字を推測してください: ");
+        char guess;
+        scanf_s(" %c", &guess);
+
+        if (!isGuessed(guess, guessedLetters)) {
+            guessedLetters[strlen(guessedLetters)] = guess;
+
+            if (strchr(selectedWord, guess) != NULL) {
+                printf("正解!\n");
+            }
+            else {
+                printf("不正解!\n");
+                incorrect++;
+            }
+
+            // 単語が完全に当たった場合
+            if (strspn(selectedWord, guessedLetters) == strlen(selectedWord)) {
+                printf("\nCongratulations! You guessed the word: %s\n", selectedWord);
+                break;
+            }
+        }
+        else {
+            printf("もうその文字は、使ったよ( '%c')。 別の言葉を入力してね\n", guess);
+        }
+    }
+
+    // ゲームオーバーの場合
+    if (incorrect == MAX_TRIES) {
+        printf("\nGame over! The word was: %s\n", selectedWord);
+    }
+
+    return 0;
+}
